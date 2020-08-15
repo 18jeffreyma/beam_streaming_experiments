@@ -67,10 +67,13 @@ class WriteBatchesToGCS(beam.DoFn):
         ts_format = "%H:%M"
         time_window_start = beam_window_start.strftime(ts_format)
         time_window_end = beam_window_end.strftime(ts_format)
-        filename = "-".join([self.output_path, date_window_end, time_window_start,
-                             time_window_end])
+        
+        
+        filename = "-".join([time_window_start, time_window_end])
+        datedir = os.path.join(self.output_path, date_window_end)
+        filepath =  os.path.join(datedir, filename)
 
-        with beam.io.gcp.gcsio.GcsIO().open(filename=filename, mode="w") as f:
+        with beam.io.gcp.gcsio.GcsIO().open(filename=filepath, mode="w") as f:
             for element in batch:
                 f.write("{}\n".format(json.dumps(element)).encode("utf-8"))
 
