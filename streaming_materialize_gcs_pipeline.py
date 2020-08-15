@@ -1,4 +1,5 @@
 
+import os
 import argparse
 import datetime
 import json
@@ -29,9 +30,7 @@ class GroupWindowsIntoBatches(beam.PTransform):
             | "Add timestamps to messages" >> beam.ParDo(AddTimestamps())
             # Use a dummy key to group the elements in the same window.
             # Note that all the elements in one window must fit into memory
-            # for this. If the windowed elements do not fit into memory,
-            # please consider using `beam.util.BatchElements`.
-            # https://beam.apache.org/releases/pydoc/current/apache_beam.transforms.util.html#apache_beam.transforms.util.BatchElements
+            # for this. 
             | "Add Dummy Key" >> beam.Map(lambda elem: (None, elem))
             | "Groupby" >> beam.GroupByKey()
             | "Abandon Dummy Key" >> beam.MapTuple(lambda _, val: val)
@@ -60,12 +59,18 @@ class WriteBatchesToGCS(beam.DoFn):
 
     def process(self, batch, window=beam.DoFn.WindowParam):
         """Write one batch per file to a Google Cloud Storage bucket. """
+        beam_window_start = window.start.to_utc_datetime()
+        beam_window_end = window.end.to_utc_datetime()
+        
+        date_window_end = beam_window_end.strftime("%Y-%m-%d")
+       
+        ts_format = "%H:%M"
+        time_window_start = beam_window_start.strftime(ts_format)
+        time_window_end = beam_window_end.strftime(ts_format)
+        filename = "-".join(time_window_start, time_window_end)
+        filepath = os.path.join(self.output_path, date_window_end, filename)
 
-        ts_format = "%Y-%m-%d"
-        window_end = window.end.to_utc_datetime().strftime(ts_format)
-        filename = "-".join([self.output_path, window_end])
-
-        with beam.io.gcp.gcsio.GcsIO().open(filename=filename, mode="a+") as f:
+        with beam.io.gcp.gcsio.GcsIO().open(filename=filename, mode="w") as f:
             for element in batch:
                 f.write("{}\n".format(json.dumps(element)).encode("utf-8"))
 
