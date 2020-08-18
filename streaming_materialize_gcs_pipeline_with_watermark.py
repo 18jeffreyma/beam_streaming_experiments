@@ -1,5 +1,4 @@
 
-import os
 import argparse
 import datetime
 import json
@@ -16,41 +15,25 @@ class GroupWindowsIntoBatches(beam.PTransform):
     and its publish timestamp.
     """
 
-    def __init__(self, window_size):
+    def __init__(self, window_size, allowed_lateness):
         # Convert minutes into seconds.
         self.window_size = int(window_size * 60)
+        self.allowed_lateness = int(allowed_lateness * 60)
 
     def expand(self, pcoll):
         return (
             pcoll
             # Assigns window info to each Pub/Sub message based on its
             # publish timestamp.
-            | "Window into Fixed Intervals"
-            >> beam.WindowInto(window.FixedWindows(self.window_size))
+            | "Window into Fixed Intervals" >> beam.WindowInto(window.FixedWindows(
+                self.window_size, 
+                allowed_lateness=window.Duration(seconds=self.allowed_lateness))
             | "Add timestamps to messages" >> beam.ParDo(AddTimestamps())
             # Use a dummy key to group the elements in the same window.
-            # Note that all the elements in one window must fit into memory
-            # for this. 
             | "Add Dummy Key" >> beam.Map(lambda elem: (None, elem))
             | "Groupby" >> beam.GroupByKey()
             | "Abandon Dummy Key" >> beam.MapTuple(lambda _, val: val)
         )
-
-
-class AddTimestamps(beam.DoFn):
-    def process(self, element, publish_time=beam.DoFn.TimestampParam):
-        """Processes each incoming windowed element by extracting the Pub/Sub
-        message and its publish timestamp into a dictionary. `publish_time`
-        defaults to the publish timestamp returned by the Pub/Sub server. It
-        is bound to each element by Beam at runtime.
-        """
-
-        yield {
-            "message_body": element.decode("utf-8"),
-            "publish_time": datetime.datetime.utcfromtimestamp(
-                float(publish_time)
-            ).strftime("%Y-%m-%d %H:%M:%S.%f"),
-        }
 
 
 class WriteBatchesToGCS(beam.DoFn):
@@ -87,9 +70,9 @@ def run(input_topic, output_path, window_size=1.0, pipeline_args=None):
     with beam.Pipeline(options=pipeline_options) as pipeline:
         (
             pipeline
-            | "Read PubSub Messages"
-            >> beam.io.ReadFromPubSub(topic=input_topic)
-            | "Window into" >> GroupWindowsIntoBatches(window_size)
+            | "Read PubSub Messages" >> beam.io.ReadFromPubSub(
+                topic=input_topic, timestamp_attribute='event_time')
+            | "Window into" >> GroupWindowsIntoBatches(window_size, window_size)
             | "Write to GCS" >> beam.ParDo(WriteBatchesToGCS(output_path))
         )
 
