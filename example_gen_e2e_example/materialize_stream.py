@@ -29,6 +29,9 @@ class WriteBatches(beam.DoFn):
         datedir = os.path.join(self.output_path, date_window_end)
         filepath =  os.path.join(datedir, filename + '.csv')
 
+        if not os.path.exists(datedir):
+            os.mkdir(datedir)
+        
         with open(filepath, mode="w+") as f:
             # Tempfix for debugging purposes.
             f.write('pickup_community_area,fare,trip_start_month,trip_start_hour,'
