@@ -41,7 +41,7 @@ class WriteBatches(beam.DoFn):
                     'dropoff_community_area,tips,big_tipper\n')
             
             for element in batch:
-                f.write("{}\n".format(element.data).encode("utf-8"))
+                f.write("{}\n".format(element.data.rstrip()).encode("utf-8"))
 
 
 def run(input_topic, output_path, window_size=60, allowed_lateness=60):
@@ -55,12 +55,12 @@ def run(input_topic, output_path, window_size=60, allowed_lateness=60):
                 topic=input_topic,
                 with_attributes=True,
                 timestamp_attribute='event_time')
-
+   
             | "Window into Fixed Intervals" >> beam.WindowInto(
                 window.FixedWindows(window_size), 
                 allowed_lateness=allowed_lateness)
-            | "Get Message Data" >> beam.Map(lambda elem: elem.data.rstrip())
             
+      
             # Use a dummy key to group the elements in the same window.
             | "Add Dummy Key" >> beam.Map(lambda elem: (None, elem))
             | "Groupby" >> beam.GroupByKey()
