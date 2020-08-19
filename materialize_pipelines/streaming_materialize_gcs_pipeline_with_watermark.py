@@ -10,11 +10,6 @@ import apache_beam.transforms.window as window
 
 
 class GroupWindowsIntoBatches(beam.PTransform):
-    """A composite transform that groups Pub/Sub messages based on publish
-    time and outputs a list of dictionaries, where each contains one message
-    and its publish timestamp.
-    """
-
     def __init__(self, window_size, allowed_lateness):
         # Convert minutes into seconds.
         self.window_size = int(window_size * 60)
@@ -57,27 +52,10 @@ class WriteBatchesToGCS(beam.DoFn):
 
         with beam.io.gcp.gcsio.GcsIO().open(filename=filepath, mode="w") as f:
             for element in batch:
-                f.write("{}\n".format(json.dumps(element)).encode("utf-8"))
+                f.write("{}\n".format(element.data).encode("utf-8"))
 
-                
-class AddTimestamps(beam.DoFn):
-    def process(self, element, event_time=beam.DoFn.TimestampParam):
-        """Processes each incoming windowed element by extracting the Pub/Sub
-        message and its publish timestamp into a dictionary. `publish_time`
-        defaults to the publish timestamp returned by the Pub/Sub server. It
-        is bound to each element by Beam at runtime.
-        """
-
-        yield {
-            "message_body": element.decode("utf-8"),
-            "event_time": datetime.datetime.utcfromtimestamp(
-                float(event_time)
-            ).strftime("%Y-%m-%d %H:%M:%S.%f"),
-        }
 
 def run(input_topic, output_path, window_size=1.0, pipeline_args=None):
-    # `save_main_session` is set to true because some DoFn's rely on
-    # globally imported modules.
     pipeline_options = PipelineOptions(
         pipeline_args, streaming=True, save_main_session=True
     )
@@ -86,7 +64,9 @@ def run(input_topic, output_path, window_size=1.0, pipeline_args=None):
         (
             pipeline
             | "Read PubSub Messages" >> beam.io.ReadFromPubSub(
-                topic=input_topic, timestamp_attribute='event_time')
+                topic=input_topic,
+                with_attributes=True,
+                timestamp_attribute='event_time')
             | "Window into" >> GroupWindowsIntoBatches(window_size, window_size)
             | "Write to GCS" >> beam.ParDo(WriteBatchesToGCS(output_path))
         )
@@ -119,4 +99,3 @@ if __name__ == "__main__":  # noqa
         known_args.window_size,
         pipeline_args,
     )
-
