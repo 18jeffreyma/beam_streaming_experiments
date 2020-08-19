@@ -41,7 +41,7 @@ class WriteBatches(beam.DoFn):
                     'dropoff_community_area,tips,big_tipper\n')
             
             for element in batch:
-                f.write("{}\n".format(element.data.rstrip()).encode("utf-8"))
+                f.write("{}\n".format(element.data.rstrip()))
 
 
 def run(input_topic, output_path, window_size=60, allowed_lateness=60):
