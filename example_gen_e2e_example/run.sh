@@ -1,16 +1,17 @@
 #!/bin/sh
 
 echo "Creating screens."
-screen -S "Simulate Stream"
+screen -dmS "Simulate Stream" 
 
-screen -S "Materialize"
-
+screen -dmS "Materialize"
 
 echo "Starting beam streaming materialization listener."
-screen -S "Materialize" -X stuff 'python3 materialize_stream.py <CMD>\n'
+screen -S "Materialize" -r
+python3 materialize_stream.py
 
 echo "Starting taxi data stream simulator."
-screen -S 'Simulate Stream' -X stuff 'python3 simulate_taxi_data_stream.py <CMD>\n'
+screen -S 'Simulate Stream' -r
+python3 simulate_taxi_data_stream.py
 
 echo "Creating monitor screen."
 screen -S 'Monitor'
