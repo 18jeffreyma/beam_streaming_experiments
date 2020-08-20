@@ -19,7 +19,7 @@ _pipeline_root = os.path.join(constants.TFX_ROOT, 'pipelines', _pipeline_name)
 _metadata_path = os.path.join(constants.TFX_ROOT, 'metadata', _pipeline_name,
                               'metadata.db')
 # Materialized output data.
-_data_root = constants.OUTPUT_PATH
+_data_root = os.path.join(os.getcwd(), constants.OUTPUT_PATH)
 
 # Pipeline arguments for Beam powered Components.
 _beam_pipeline_args = [
@@ -34,14 +34,12 @@ def _create_pipeline(pipeline_name: Text, pipeline_root: Text, data_root: Text,
                      metadata_path: Text,
                      beam_pipeline_args: List[Text]) -> pipeline.Pipeline:
     
-    examples = external_input(data_root)
-    
     input_config = example_gen_pb2.Input(splits=[
             example_gen_pb2.Input.Split(name='train', pattern='{YYYY}-{MM}-{DD}/*')
         ])
 
     example_gen = CsvExampleGen(
-        input=data_root,
+        input_base=data_root,
         input_config=input_config
     )
     
