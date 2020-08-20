@@ -5,7 +5,7 @@ import logging
 import time
 import constants
 
-if __name__ == "__main__":
+def main():
     # Simulate 
     logging.getLogger().setLevel(logging.INFO)
     publisher = pubsub_v1.PublisherClient()
@@ -23,4 +23,8 @@ if __name__ == "__main__":
         
     my_file.close()
     print("Published file.")
+
+
+if __name__ == "__main__":
+    main()
    

@@ -53,7 +53,7 @@ def _create_pipeline(pipeline_name: Text, pipeline_root: Text, data_root: Text,
         beam_pipeline_args=beam_pipeline_args)
 
 
-if __name__ == '__main__':
+def main():
     absl.logging.set_verbosity(absl.logging.INFO)
 
     BeamDagRunner().run(
@@ -63,3 +63,8 @@ if __name__ == '__main__':
             data_root=_data_root,
           metadata_path=_metadata_path,
           beam_pipeline_args=_beam_pipeline_args))
+
+    
+if __name__ == '__main__':
+    main()
+    
