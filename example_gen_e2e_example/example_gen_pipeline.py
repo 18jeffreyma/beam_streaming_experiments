@@ -18,7 +18,7 @@ _pipeline_root = os.path.join(constants.TFX_ROOT, 'pipelines', _pipeline_name)
 _metadata_path = os.path.join(constants.TFX_ROOT, 'metadata', _pipeline_name,
                               'metadata.db')
 # Materialized output data.
-_data_root = 'data/'
+_data_root = constants.OUTPUT_PATH
 
 # Pipeline arguments for Beam powered Components.
 _beam_pipeline_args = [
