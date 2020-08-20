@@ -1,9 +1,9 @@
 #!/bin/sh
 
 echo "Creating screens."
-screen -dmS "Materialize"
-screen -dmS "Simulate Stream"
-screen -dmS "Monitor"
+screen -S "Monitor"
+screen -S "Simulate Stream"
+screen -S "Materialize"
 
 echo "Starting beam streaming materialization listener."
 screen -S "Materialize" -X "python3 materialize_stream.py <CMD>\n"
