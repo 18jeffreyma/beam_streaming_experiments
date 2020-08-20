@@ -37,7 +37,7 @@ def _create_pipeline(pipeline_name: Text, pipeline_root: Text, data_root: Text,
     examples = external_input(data_root)
     
     input_config = example_gen_pb2.Input(splits=[
-            example_gen_pb2.Input.Split(name='train', pattern='{YYYY}-{MM}-{DD}/*')
+            example_gen_pb2.Input.Split(name='s1', pattern='{YYYY}-{MM}-{DD}/*')
         ])
 
     example_gen = CsvExampleGen(

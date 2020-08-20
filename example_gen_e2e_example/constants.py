@@ -10,7 +10,7 @@ INPUT_TOPIC_MESSAGE_DELAY = 5
 TAXI_DATA_FILE = 'data/data.csv'
 
 # Materializing Taxi Data Stream
-OUTPUT_PATH = 'materialized_output_data/'
+OUTPUT_PATH = 'materialized_output_data'
 
 RUNNER_TYPE = 'DirectRunner'
 
