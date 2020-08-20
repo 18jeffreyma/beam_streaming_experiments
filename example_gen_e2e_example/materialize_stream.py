@@ -69,8 +69,7 @@ def run(input_topic, output_path, window_size=60, allowed_lateness=60):
             | "Write to File" >> beam.ParDo(WriteBatches(output_path))
         )
 
-
-if __name__ == "__main__":  # noqa
+def main():
     logging.getLogger().setLevel(logging.INFO)
 
     publisher = pubsub_v1.PublisherClient()
@@ -83,3 +82,6 @@ if __name__ == "__main__":  # noqa
         window_size=constants.WINDOW_DURATION,
         allowed_lateness=constants.WINDOW_ALLOWED_LATENESS
     )
+
+if __name__ == "__main__":  # noqa
+    main()
