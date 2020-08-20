@@ -28,7 +28,7 @@ class WriteBatches(beam.DoFn):
         filename = "-".join([time_window_start, time_window_end, 'data'])
         datedir = os.path.join(self.output_path, date_window_end)
         filepath =  os.path.join(datedir, filename + '.csv')
-
+        
         if not os.path.exists(datedir):
             os.mkdir(datedir)
         
@@ -47,6 +47,9 @@ class WriteBatches(beam.DoFn):
 def run(input_topic, output_path, window_size=60, allowed_lateness=60):
     pipeline_options = PipelineOptions(
         ['--streaming'], streaming=True)
+    
+    if not os.path.exists(output_path):
+        os.mkdir(output_path)
     
     with beam.Pipeline(options=pipeline_options) as pipeline:
         (
@@ -75,7 +78,7 @@ def main():
     publisher = pubsub_v1.PublisherClient()
     input_topic_path = publisher.topic_path(constants.PROJECT_ID, 
                                             constants.INPUT_TOPIC_NAME)
-            
+    
     run(
         input_topic_path,
         constants.OUTPUT_PATH,
