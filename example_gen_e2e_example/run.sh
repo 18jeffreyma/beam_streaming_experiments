@@ -12,4 +12,4 @@ echo "Starting taxi data stream simulator."
 screen -d -m bash -S 'Simulate Stream' -X "python3 simulate_taxi_data_stream.py <CMD>\n"
 
 echo "Opening monitor screen."
-screen S 'Monitor'
+screen -S 'Monitor'
