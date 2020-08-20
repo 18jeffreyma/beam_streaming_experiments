@@ -9,6 +9,7 @@ from tfx.orchestration import metadata
 from tfx.orchestration import pipeline
 from tfx.orchestration.beam.beam_dag_runner import BeamDagRunner
 from tfx.proto import example_gen_pb2
+from tfx.utils.dsl_utils import external_input
 
 _pipeline_name = 'taxi_streaming_beam'
 
@@ -32,12 +33,15 @@ _beam_pipeline_args = [
 def _create_pipeline(pipeline_name: Text, pipeline_root: Text, data_root: Text,
                      metadata_path: Text,
                      beam_pipeline_args: List[Text]) -> pipeline.Pipeline:
+    
+    examples = external_input(data_root)
+    
     input_config = example_gen_pb2.Input(splits=[
             example_gen_pb2.Input.Split(name='train', pattern='{YYYY}-{MM}-{DD}/*')
         ])
 
     example_gen = CsvExampleGen(
-        input_base=data_root,
+        input=data_root,
         input_config=input_config
     )
     
